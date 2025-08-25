@@ -212,24 +212,15 @@ def find_top_shorts(query, video_id, _cookies_file, num_shorts=3, duration=60, s
 def download_video_segment(video_id, start_time, end_time):
     """Download a specific time segment of a video."""
     output_filename = f"short_{video_id}_{int(start_time)}.mp4"
-    
+    # FIXED: Using a more robust format selector to prevent errors
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        'outtmpl': output_filename,
-        'quiet': True,
-        'no_warnings': True,
-        'postprocessors': [{
-            'key': 'FFmpegVideoRemuxer',
-            'preferedformat': 'mp4',
-        }],
+        'outtmpl': {'default': output_filename},
         'download_ranges': yt_dlp.utils.download_range_func(None, [(start_time, end_time)]),
-        # This option can make cutting much faster
-        'force_keyframes_at_cuts': True,
+        'quiet': True, 'no_warnings': True,
     }
-
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl: ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
         return output_filename
     except Exception as e:
         st.error(f"Failed to download clip: {e}")
